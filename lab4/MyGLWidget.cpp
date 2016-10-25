@@ -24,8 +24,7 @@ void MyGLWidget::initializeGL ()
   carregaShaders();
   createBuffers();
 
-  projectTransform();
-  viewTransform();
+  ini_camera();
 }
 
 void MyGLWidget::paintGL ()
@@ -40,7 +39,7 @@ void MyGLWidget::paintGL ()
   glBindVertexArray (VAO_Homer);
 
   // pintem
-  glDrawArrays(GL_TRIANGLE_STRIP, 0, m.faces().size()*3);
+  glDrawArrays(GL_TRIANGLES, 0, m.faces().size()*3);
 
   glBindVertexArray (0);
 }
@@ -50,6 +49,7 @@ void MyGLWidget::modelTransform ()
   // Matriu de transformació de model
   glm::mat4 transform (1.0f);
   transform = glm::scale(transform, glm::vec3(scale));
+  transform = glm::rotate(transform, rotate);
   glUniformMatrix4fv(transLoc, 1, GL_FALSE, &transform[0][0]);
 }
 
@@ -67,6 +67,13 @@ void MyGLWidget::keyPressEvent(QKeyEvent* event)
       break;
     }
     case Qt::Key_D: { // escalar a més petit
+      scale -= 0.05;
+      break;
+    }
+    case Qt::Key_R: { // escalar a més petit
+      if(event->modifiers()&(Qt::ShiftModifier)){
+
+      }
       scale -= 0.05;
       break;
     }
@@ -136,14 +143,28 @@ void MyGLWidget::carregaShaders()
 
 void MyGLWidget::projectTransform(){
   //glm:perspective(FOV en radians, ra window, znear, zfar);
-  glm::mat4 Proj = glm::perspective((float)M_PI/2.0f, 1.0f, 0.4f, 3.0f);
+  glm::mat4 Proj = glm::perspective((float) FOV, ra, znear, zfar);
   glUniformMatrix4fv(projLoc, 1, GL_FALSE, &Proj[0][0]);
 }
 
 void MyGLWidget::viewTransform(){
   //glm:lokAt(OBS, VRP, up)
-  glm::mat4 View = glm::lookAt(glm::vec3(0,0,1),
-                               glm::vec3(0,0,0),
-                               glm::vec3(0,1,0));
+  glm::mat4 View = glm::lookAt(OBS, VRP, up);
   glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &View[0][0]);
+}
+
+void MyGLWidget::ini_camera(){
+  OBS = glm::vec3(0,0,2);
+  VRP = glm::vec3(0,0,0);
+  up  = glm::vec3(0,0.5,0);
+
+  FOV = (float)M_PI/2.0f;
+  ra = 1.0f;
+  znear = 0.4f;
+  zfar = 3.0f;
+
+  rotate = glm::vec3(0,0,0);
+
+  projectTransform();
+  viewTransform();
 }

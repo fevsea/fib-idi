@@ -34,6 +34,7 @@ class MyGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
     void modelTransform ();
     void projectTransform();
     void viewTransform();
+    void ini_camera();
 
     // attribute locations
     GLuint vertexLoc, colorLoc, projLoc, viewLoc;
@@ -45,6 +46,10 @@ class MyGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
     QOpenGLShaderProgram *program;
     // Internal vars
     float scale;
-    glm::vec3 pos;
+    glm::vec3 pos, rotate;
     Model m;
+
+    //Camera
+    glm::vec3 OBS, VRP, up;
+    float FOV, ra, znear, zfar;
 };
