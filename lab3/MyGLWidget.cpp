@@ -22,7 +22,7 @@ void MyGLWidget::initializeGL ()
 {
   // Cal inicialitzar l'ús de les funcions d'OpenGL
   initializeOpenGLFunctions();
-  
+
   glClearColor (0.5, 0.7, 1.0, 1.0); // defineix color de fons (d'esborrat)
   carregaShaders();
   createBuffers();
@@ -32,10 +32,10 @@ void MyGLWidget::paintGL ()
 {
   glClear (GL_COLOR_BUFFER_BIT);  // Esborrem el frame-buffer
 
-  // Activem l'Array a pintar 
+  // Activem l'Array a pintar
   modelTransform(0);
   glBindVertexArray(VAO);
- 
+
   // Pintem l'escena
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 3);
 
@@ -82,7 +82,7 @@ void MyGLWidget::createBuffers ()
   glGenBuffers(1, &VBO);
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(VerticesA), VerticesA, GL_STATIC_DRAW);
-  // Activem l'atribut que farem servir per vèrtex	
+  // Activem l'atribut que farem servir per vèrtex
   glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(vertexLoc);
 
@@ -90,7 +90,7 @@ void MyGLWidget::createBuffers ()
   glGenBuffers(1, &VBO);
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(Colors), Colors, GL_STATIC_DRAW);
-  // Activem l'atribut que farem servir per vèrtex  
+  // Activem l'atribut que farem servir per vèrtex
   glVertexAttribPointer(colorLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(colorLoc);
 
@@ -102,7 +102,7 @@ void MyGLWidget::createBuffers ()
   glGenBuffers(1, &VBOb);
   glBindBuffer(GL_ARRAY_BUFFER, VBOb);
   glBufferData(GL_ARRAY_BUFFER, sizeof(VerticesB), VerticesB, GL_STATIC_DRAW);
-  // Activem l'atribut que farem servir per vèrtex  
+  // Activem l'atribut que farem servir per vèrtex
   glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(vertexLoc);
 
@@ -110,7 +110,7 @@ void MyGLWidget::createBuffers ()
   glGenBuffers(1, &VBOb);
   glBindBuffer(GL_ARRAY_BUFFER, VBOb);
   glBufferData(GL_ARRAY_BUFFER, sizeof(Colors), Colors, GL_STATIC_DRAW);
-  // Activem l'atribut que farem servir per vèrtex  
+  // Activem l'atribut que farem servir per vèrtex
   glVertexAttribPointer(colorLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(colorLoc);
 
@@ -142,7 +142,11 @@ void MyGLWidget::carregaShaders()
   transLoc = glGetUniformLocation (program->programId(), "TG");
 }
 
+// mousePressEvent(QMouseEvent *e);
+// mouseRelaseEvent(QMouseEvent *e);
+// mouseMoveEvent(QMouseEvent *e);
 void MyGLWidget::keyPressEvent(QKeyEvent *e){
+  //if(e->modifiers()&(Qt::ShiftModifier|Qt:AltModifier|Qt:ControlModifier)))
   makeCurrent();
   switch(e->key()){
     case Qt::Key_S:

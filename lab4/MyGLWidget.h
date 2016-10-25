@@ -6,8 +6,9 @@
 #include <QKeyEvent>
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include "../Model/model.h"
 
-class MyGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core 
+class MyGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
 {
   Q_OBJECT
 
@@ -26,22 +27,24 @@ class MyGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
     // keyPressEvent - Es cridat quan es prem una tecla
     virtual void keyPressEvent (QKeyEvent *event);
 
+
   private:
     void createBuffers ();
     void carregaShaders ();
     void modelTransform ();
-    void projectTransform ();
+    void projectTransform();
+    void viewTransform();
 
     // attribute locations
-    GLuint vertexLoc, colorLoc;
+    GLuint vertexLoc, colorLoc, projLoc, viewLoc;
     // uniform locations
     GLuint transLoc;
     // VAO i VBO names
-    GLuint VAO_Casa, VBO_CasaPos, VBO_CasaCol;
+    GLuint VAO_Homer, VBO_HomerPos, VBO_HomerCol;
     // Program
     QOpenGLShaderProgram *program;
     // Internal vars
     float scale;
     glm::vec3 pos;
+    Model m;
 };
-

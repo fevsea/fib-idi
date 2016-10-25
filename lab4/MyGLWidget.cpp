@@ -17,31 +17,35 @@ MyGLWidget::~MyGLWidget ()
 void MyGLWidget::initializeGL ()
 {
   // Cal inicialitzar l'ús de les funcions d'OpenGL
-  initializeOpenGLFunctions();  
+  initializeOpenGLFunctions();
+  glEnable(GL_DEPTH_TEST);
 
   glClearColor(0.5, 0.7, 1.0, 1.0); // defineix color de fons (d'esborrat)
   carregaShaders();
   createBuffers();
+
+  projectTransform();
+  viewTransform();
 }
 
-void MyGLWidget::paintGL () 
+void MyGLWidget::paintGL ()
 {
   // Esborrem el frame-buffer
-  glClear (GL_COLOR_BUFFER_BIT);
+  glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // Carreguem la transformació de model
   modelTransform ();
 
-  // Activem el VAO per a pintar la caseta 
-  glBindVertexArray (VAO_Casa);
+  // Activem el VAO per a pintar la caseta
+  glBindVertexArray (VAO_Homer);
 
   // pintem
-  glDrawArrays(GL_TRIANGLE_STRIP, 0, 5);
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, m.faces().size()*3);
 
   glBindVertexArray (0);
 }
 
-void MyGLWidget::modelTransform () 
+void MyGLWidget::modelTransform ()
 {
   // Matriu de transformació de model
   glm::mat4 transform (1.0f);
@@ -49,12 +53,12 @@ void MyGLWidget::modelTransform ()
   glUniformMatrix4fv(transLoc, 1, GL_FALSE, &transform[0][0]);
 }
 
-void MyGLWidget::resizeGL (int w, int h) 
+void MyGLWidget::resizeGL (int w, int h)
 {
   glViewport(0, 0, w, h);
 }
 
-void MyGLWidget::keyPressEvent(QKeyEvent* event) 
+void MyGLWidget::keyPressEvent(QKeyEvent* event)
 {
   switch (event->key()) {
     makeCurrent();
@@ -71,40 +75,28 @@ void MyGLWidget::keyPressEvent(QKeyEvent* event)
   update();
 }
 
-void MyGLWidget::createBuffers () 
+void MyGLWidget::createBuffers ()
 {
-  // Dades de la caseta
-  // Dos VBOs, un amb posició i l'altre amb color
-  glm::vec3 posicio[5] = {
-	glm::vec3(-0.5, -1.0, -0.5),
-	glm::vec3( 0.5, -1.0, -0.5),
-	glm::vec3(-0.5,  0.0, -0.5),
-	glm::vec3( 0.5,  0.0, -0.5),
-	glm::vec3( 0.0,  0.6, -0.5)
-  }; 
-  glm::vec3 color[5] = {
-	glm::vec3(1,0,0),
-	glm::vec3(0,1,0),
-	glm::vec3(0,0,1),
-	glm::vec3(1,0,0),
-	glm::vec3(0,1,0)
-  };
+  m.load("../models/HomerProves.obj");
+
 
   // Creació del Vertex Array Object per pintar
-  glGenVertexArrays(1, &VAO_Casa);
-  glBindVertexArray(VAO_Casa);
+  glGenVertexArrays(1, &VAO_Homer);
+  glBindVertexArray(VAO_Homer);
 
-  glGenBuffers(1, &VBO_CasaPos);
-  glBindBuffer(GL_ARRAY_BUFFER, VBO_CasaPos);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(posicio), posicio, GL_STATIC_DRAW);
+  glGenBuffers(1, &VBO_HomerPos);
+  glBindBuffer(GL_ARRAY_BUFFER, VBO_HomerPos);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * m.faces().size()*3*3,
+               m.VBO_vertices(), GL_STATIC_DRAW);
 
   // Activem l'atribut vertexLoc
   glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(vertexLoc);
 
-  glGenBuffers(1, &VBO_CasaCol);
-  glBindBuffer(GL_ARRAY_BUFFER, VBO_CasaCol);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(color), color, GL_STATIC_DRAW);
+  glGenBuffers(1, &VBO_HomerCol);
+  glBindBuffer(GL_ARRAY_BUFFER, VBO_HomerCol);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * m.faces().size()*3*3,
+               m.VBO_matdiff(), GL_STATIC_DRAW);
 
   // Activem l'atribut colorLoc
   glVertexAttribPointer(colorLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -128,7 +120,7 @@ void MyGLWidget::carregaShaders()
   program->addShader(&vs);
   // Linkem el program
   program->link();
-  // Indiquem que aquest és el program que volem usar
+  // Indiquem que aquesprojLoct és el program que volem usar
   program->bind();
 
   // Obtenim identificador per a l'atribut “vertex” del vertex shader
@@ -137,12 +129,21 @@ void MyGLWidget::carregaShaders()
   colorLoc = glGetAttribLocation (program->programId(), "color");
   // Uniform locations
   transLoc = glGetUniformLocation(program->programId(), "TG");
+
+  projLoc = glGetUniformLocation(program->programId(), "proj");
+  viewLoc = glGetUniformLocation(program->programId(), "view");
 }
 
-void MyGLWidget::projectTransform () {
-  // glm::perspective (FOV en radians, ra window, znear, zfar)
-  projLoc = glGetUniformLocation (program->programId(), “proj”)
-  glm::mat4 Proj = glm::perspective ((float)M_PI/2.0f, 1.0f, 0.4f, 3.0f);
-  glUniformMatrix4fv (projLoc, 1, GL_FALSE, &Proj[0][0]);
+void MyGLWidget::projectTransform(){
+  //glm:perspective(FOV en radians, ra window, znear, zfar);
+  glm::mat4 Proj = glm::perspective((float)M_PI/2.0f, 1.0f, 0.4f, 3.0f);
+  glUniformMatrix4fv(projLoc, 1, GL_FALSE, &Proj[0][0]);
 }
 
+void MyGLWidget::viewTransform(){
+  //glm:lokAt(OBS, VRP, up)
+  glm::mat4 View = glm::lookAt(glm::vec3(0,0,1),
+                               glm::vec3(0,0,0),
+                               glm::vec3(0,1,0));
+  glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &View[0][0]);
+}
