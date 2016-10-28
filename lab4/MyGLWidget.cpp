@@ -23,6 +23,7 @@ void MyGLWidget::initializeGL ()
   glClearColor(0.5, 0.7, 1.0, 1.0); // defineix color de fons (d'esborrat)
   carregaShaders();
   createBuffers();
+  createBase();
 
   ini_camera();
 }
@@ -41,15 +42,20 @@ void MyGLWidget::paintGL ()
   // pintem
   glDrawArrays(GL_TRIANGLES, 0, m.faces().size()*3);
 
+  glBindVertexArray (VAO_Base);
+  glm::mat4 transform(1.0f);
+  transform = glm::scale(transform, glm::vec3(scale));
+  glUniformMatrix4fv(transLoc, 1, GL_FALSE, &transform[0][0]);
+  glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
   glBindVertexArray (0);
 }
 
 void MyGLWidget::modelTransform ()
 {
   // Matriu de transformació de model
-  glm::mat4 transform (1.0f);
+  glm::mat4 transform(1.0f);
   transform = glm::scale(transform, glm::vec3(scale));
-  transform = glm::rotate(transform, rotate);
+  transform = glm::rotate(transform, rot * (float)M_PI/8, rotateA);
   glUniformMatrix4fv(transLoc, 1, GL_FALSE, &transform[0][0]);
 }
 
@@ -72,14 +78,50 @@ void MyGLWidget::keyPressEvent(QKeyEvent* event)
     }
     case Qt::Key_R: { // escalar a més petit
       if(event->modifiers()&(Qt::ShiftModifier)){
-
+        rot -= 1;
+      } else{
+        rot += 1;
       }
-      scale -= 0.05;
       break;
     }
     default: event->ignore(); break;
   }
   update();
+}
+void MyGLWidget::createBase() {
+  glm::vec3 Vertices[4];  // Tres vèrtexs amb X, Y i Z
+  Vertices[0] = glm::vec3(-1.0, -1.0,-1.0);
+  Vertices[1] = glm::vec3(-1.0, -1.0, 1.0);
+  Vertices[2] = glm::vec3( 1.0, -1.0, 1.0);
+  Vertices[3] = glm::vec3( 1.0, -1.0,-1.0);
+
+  glm::vec3 Colors[4];  // Tres vèrtexs amb X, Y i Z
+  Colors[0] = glm::vec3(1.0, 0.0, 0.0);
+  Colors[1] = glm::vec3( 0.0,  1.0, 0.0);
+  Colors[2] = glm::vec3( 0.0,  0.0, 1.0);
+  Colors[3] = glm::vec3( 1.0,  0.0, 1.0);
+
+  // Creació del Vertex Array Object (VAO) que usarem per pintar
+  glGenVertexArrays(1, &VAO_Base);
+  glBindVertexArray(VAO_Base);
+
+  // Creació del buffer amb les dades dels vèrtexs
+  glGenBuffers(1, &VBO_BasePos);
+  glBindBuffer(GL_ARRAY_BUFFER, VBO_BasePos);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW);
+  // Activem l'atribut que farem servir per vèrtex
+  glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+  glEnableVertexAttribArray(vertexLoc);
+
+  // Creació del buffer amb les dades dels vèrtexs
+  glGenBuffers(1, &VBO_BaseCol);
+  glBindBuffer(GL_ARRAY_BUFFER, VBO_BaseCol);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(Colors), Colors, GL_STATIC_DRAW);
+  // Activem l'atribut que farem servir per vèrtex
+  glVertexAttribPointer(colorLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+  glEnableVertexAttribArray(colorLoc);
+  // Desactivem el VAO
+  glBindVertexArray(0);
 }
 
 void MyGLWidget::createBuffers ()
@@ -160,10 +202,11 @@ void MyGLWidget::ini_camera(){
 
   FOV = (float)M_PI/2.0f;
   ra = 1.0f;
-  znear = 0.4f;
-  zfar = 3.0f;
+  znear = 1.f;
+  zfar = 4.0f;
 
-  rotate = glm::vec3(0,0,0);
+  rotateA = glm::vec3(0.0f,1.0f,0.0f);
+  rot = 0;
 
   projectTransform();
   viewTransform();

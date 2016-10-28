@@ -30,6 +30,7 @@ class MyGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
 
   private:
     void createBuffers ();
+    void createBase ();
     void carregaShaders ();
     void modelTransform ();
     void projectTransform();
@@ -42,11 +43,12 @@ class MyGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
     GLuint transLoc;
     // VAO i VBO names
     GLuint VAO_Homer, VBO_HomerPos, VBO_HomerCol;
+    GLuint VAO_Base, VBO_BasePos, VBO_BaseCol;
     // Program
     QOpenGLShaderProgram *program;
     // Internal vars
-    float scale;
-    glm::vec3 pos, rotate;
+    float scale, rot;
+    glm::vec3 pos, rotateA;
     Model m;
 
     //Camera
