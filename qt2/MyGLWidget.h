@@ -7,10 +7,15 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "../Model/model.h"
+#include <string>
 
 class MyGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
 {
   Q_OBJECT
+
+  public slots:
+    void loadModel(const QString &);
+    void getInt(const int i);
 
   public:
     MyGLWidget (QWidget *parent=0);
@@ -33,7 +38,7 @@ class MyGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
     void createBuffers ();
     void createBase ();
     void carregaShaders ();
-    void modelTransform ();
+    void modelTransform (int i);
     void projectTransform();
     void viewTransform();
     void ini_camera();
@@ -51,9 +56,10 @@ class MyGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
     // Program
     QOpenGLShaderProgram *program;
     // Internal vars
-    float scale, rot;
+    float scale, rot, zoom;
     glm::vec3 pos, rotateA;
     Model m;
+    std::string model = "f-16";
 
     //Camera
     glm::vec3 OBS, VRP, up;

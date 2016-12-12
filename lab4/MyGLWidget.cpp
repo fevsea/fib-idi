@@ -62,6 +62,7 @@ void MyGLWidget::modelTransform ()
 void MyGLWidget::resizeGL (int w, int h)
 {
   glViewport(0, 0, w, h);
+
 }
 
 void MyGLWidget::keyPressEvent(QKeyEvent* event)

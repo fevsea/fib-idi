@@ -67,8 +67,9 @@ void MyGLWidget::resizeGL (int w, int h)
 
 void MyGLWidget::keyPressEvent(QKeyEvent* event)
 {
+        makeCurrent();
         switch (event->key()) {
-                makeCurrent();
+
         case Qt::Key_S: { // escalar a més gran
                 scale += 0.05;
                 break;
@@ -85,9 +86,20 @@ void MyGLWidget::keyPressEvent(QKeyEvent* event)
                 }
                 break;
         }
+        case Qt::Key_X: { // escalar a més petit
+                zoom += 0.05;
+                projectTransform();
+                break;
+        }
+        case Qt::Key_Z: { // escalar a més petit
+                 zoom -= 0.05;
+                 projectTransform();
+                 break;
+        }
         default: event->ignore(); break;
         }
         update();
+
 }
 
 void MyGLWidget::mousePressEvent( QMouseEvent *event){
@@ -215,8 +227,9 @@ void MyGLWidget::modelTransform ()
 
 void MyGLWidget::projectTransform(){
         //glm:perspective(FOV en radians, ra window, znear, zfar);
-        glm::mat4 Proj = glm::perspective((float) FOV, ra, znear, zfar);
+        glm::mat4 Proj = glm::perspective((float) FOV*zoom, ra, znear, zfar);
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, &Proj[0][0]);
+        std::cout << "Projecttransform " << zoom << " - " << FOV << std::endl;
 }
 
 void MyGLWidget::viewTransform(){
@@ -265,6 +278,7 @@ void MyGLWidget::get_box(Model &mo){
 void MyGLWidget::ini_camera(){
         OBS = glm::vec3(0,0,d);
         up  = glm::vec3(0,1,0);
+        zoom = 1.0f;
 
         FOV = (float) 2 * asin(R/d);
         ra = 1.0f;

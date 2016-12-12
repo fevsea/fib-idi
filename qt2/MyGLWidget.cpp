@@ -38,7 +38,7 @@ void MyGLWidget::paintGL ()
         glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Carreguem la transformació de model
-        modelTransform ();
+        modelTransform(1);
 
         // Activem el VAO per a pintar la caseta
         glBindVertexArray (VAO_Homer);
@@ -46,11 +46,21 @@ void MyGLWidget::paintGL ()
         // pintem
         glDrawArrays(GL_TRIANGLES, 0, m.faces().size()*3);
 
+
+        modelTransform(2);
+
+        // Activem el VAO per a pintar la caseta
+        glBindVertexArray (VAO_Homer);
+
+        // pintem
+        glDrawArrays(GL_TRIANGLES, 0, m.faces().size()*3);
+
+
         glBindVertexArray (VAO_Base);
         glm::mat4 transform(1.0f);
         transform = glm::scale(transform, glm::vec3(scale));
         glUniformMatrix4fv(transLoc, 1, GL_FALSE, &transform[0][0]);
-        //glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         glBindVertexArray (0);
 }
 
@@ -67,8 +77,9 @@ void MyGLWidget::resizeGL (int w, int h)
 
 void MyGLWidget::keyPressEvent(QKeyEvent* event)
 {
+        makeCurrent();
         switch (event->key()) {
-                makeCurrent();
+
         case Qt::Key_S: { // escalar a més gran
                 scale += 0.05;
                 break;
@@ -85,9 +96,20 @@ void MyGLWidget::keyPressEvent(QKeyEvent* event)
                 }
                 break;
         }
+        case Qt::Key_X: { // escalar a més petit
+                zoom += 0.05;
+                projectTransform();
+                break;
+        }
+        case Qt::Key_Z: { // escalar a més petit
+                 zoom -= 0.05;
+                 projectTransform();
+                 break;
+        }
         default: event->ignore(); break;
         }
         update();
+
 }
 
 void MyGLWidget::mousePressEvent( QMouseEvent *event){
@@ -110,10 +132,10 @@ void MyGLWidget::mouseMoveEvent( QMouseEvent *event){
 
 void MyGLWidget::createBase() {
         glm::vec3 Vertices[4]; // Tres vèrtexs amb X, Y i Z
-        Vertices[0] = glm::vec3(-1.0, -1.0,-1.0);
-        Vertices[1] = glm::vec3(-1.0, -1.0, 1.0);
-        Vertices[2] = glm::vec3( 1.0, -1.0, 1.0);
-        Vertices[3] = glm::vec3( 1.0, -1.0,-1.0);
+        Vertices[0] = glm::vec3(-2.0,  0.0, -2.0);
+        Vertices[1] = glm::vec3(-2.0,  0.0,  2.0);
+        Vertices[2] = glm::vec3( 2.0,  0.0, -2.0);
+        Vertices[3] = glm::vec3( 2.0,  0.0,  2.0);
 
         glm::vec3 Colors[4]; // Tres vèrtexs amb X, Y i Z
         Colors[0] = glm::vec3(1.0, 0.0, 0.0);
@@ -146,7 +168,7 @@ void MyGLWidget::createBase() {
 
 void MyGLWidget::createBuffers ()
 {
-        m.load("../models/Patricio.obj");
+        m.load("../models/" + model + ".obj");
 
 
         // Creació del Vertex Array Object per pintar
@@ -203,19 +225,23 @@ void MyGLWidget::carregaShaders()
         viewLoc = glGetUniformLocation(program->programId(), "view");
 }
 
-void MyGLWidget::modelTransform ()
+void MyGLWidget::modelTransform (int i)
 {
         // Matriu de transformació de modela
         glm::mat4 transform(1.0f);
         transform = glm::scale(transform, glm::vec3(scale));
-        transform = glm::rotate(transform, rot * (float)M_PI/8, rotateA);
+        if(i == 1) transform = glm::translate(transform, glm::vec3(1, (centre[1]-minP[1])/R, 1));
+        if(i == 2) transform = glm::translate(transform, glm::vec3(-1, (centre[1]-minP[1])/R, -1));
+        transform = glm::scale(transform, glm::vec3(scale/R));
+        if(i == 1) transform = glm::rotate(transform, rot * (float)M_PI/8, rotateA);
+        if(i == 2) transform = glm::rotate(transform, rot * (float)M_PI/8 + (float)M_PI, rotateA);
         transform = glm::translate(transform, glm::vec3(-1*centre[0], -1*centre[1], -1*centre[2]));
         glUniformMatrix4fv(transLoc, 1, GL_FALSE, &transform[0][0]);
 }
 
 void MyGLWidget::projectTransform(){
         //glm:perspective(FOV en radians, ra window, znear, zfar);
-        glm::mat4 Proj = glm::perspective((float) FOV, ra, znear, zfar);
+        glm::mat4 Proj = glm::perspective((float) FOV*zoom, ra, znear, zfar);
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, &Proj[0][0]);
 }
 
@@ -265,6 +291,9 @@ void MyGLWidget::get_box(Model &mo){
 void MyGLWidget::ini_camera(){
         OBS = glm::vec3(0,0,d);
         up  = glm::vec3(0,1,0);
+        zoom = 1.0f;
+
+        Ey += (float) M_PI/4;
 
         FOV = (float) 2 * asin(R/d);
         ra = 1.0f;
@@ -276,4 +305,22 @@ void MyGLWidget::ini_camera(){
 
         projectTransform();
         viewTransform();
+}
+
+void MyGLWidget::loadModel(const QString & s){
+    model = s.toStdString();
+    std::cout << "../models/" + model + ".obj" << std::endl;
+    createBuffers();
+
+    get_box(m);
+    ini_capsa();
+    ini_camera();
+}
+
+void MyGLWidget::getInt(const int i){
+    makeCurrent();
+    std::cout << i << std::endl;
+    rot = (int) (i-50)*0.1f;
+    update();
+
 }
